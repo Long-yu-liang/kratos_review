@@ -53,7 +53,7 @@ registry.yaml 服务注册配置
 ### 服务启动
 ```bash
 # 启动评价服务
-go run cmd/review-service/main.go
+kratos run
 
 # 或使用 Docker
 docker-compose up -d
