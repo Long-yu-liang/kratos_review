@@ -1,0 +1,21 @@
+server:
+  http:
+    addr: 0.0.0.0:8182
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9192
+    timeout: 1s
+data:
+  database:
+    driver: mysql
+    source: root:123456@tcp(127.0.0.1:3306)/db1?parseTime=True&loc=Local
+  redis:
+    addr: 127.0.0.1:6379
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+snowflake:
+  start_time: "2025-08-11"
+  machine_id: 1
+elasticsearch:
+  addresses:
+    - "http://127.0.0.1:9200"
