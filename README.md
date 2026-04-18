@@ -1,118 +1,122 @@
 # 电商评价微服务系统
 
-## 项目简介
-基于 Kratos 框架构建的电商评价微服务系统，覆盖评论创建、回复、审核、申诉、检索全流程，提供完整的商品评价解决方案。
+学习性质项目
 
-## 技术架构
+基于 Kratos 的电商评价系统，围绕「写入、审核、检索、异步处理」构建了完整的微服务链路，适用于中小型电商场景的评价业务落地。
 
-### 核心技术栈
-- **微服务框架**: Kratos + Protobuf
-- **服务发现与注册**: Consul
-- **数据库**: GORM + MySQL
-- **缓存**: Redis
-- **搜索**: Elasticsearch
-- **消息队列**: Kafka
-- **数据同步**: Canal
-- **架构模式**: CQRS
+![系统示意图](image.png)
 
-### 架构特点
-- 采用 CQRS 架构分离读写操作，提升系统性能
-- 通过 Protobuf 定义统一接口规范，保证接口一致性
-- 微服务架构设计，支持水平扩展和高可用
+## 项目概览
 
-## 功能特性
-- ✅ 评论创建与管理
-- ✅ 评论回复功能
-- ✅ 审核流程管理
-- ✅ 用户申诉处理
-- ✅ 智能搜索检索
-- ✅ 数据实时同步
+本仓库是一个多服务工程，包含评价核心服务、业务处理服务、运营服务以及异步任务服务。
+
+- `review-service`：评价核心服务（评论主流程与数据落库）
+- `review-b`：业务处理服务（业务侧评价能力）
+- `review-o`：运营管理服务（运营后台相关能力）
+- `review-job`：异步任务服务（消费消息并写入检索系统）
+
+## 技术栈
+
+- 微服务框架：Kratos
+- 接口协议：gRPC + Protobuf + HTTP Gateway
+- 数据存储：MySQL（GORM）
+- 缓存：Redis
+- 消息队列：Kafka
+- 检索：Elasticsearch
+- 服务注册与发现：Consul
+- 代码组织：CQRS 思路（读写职责分离）
+
+## 核心能力
+
+- 评论创建、查询与状态流转
+- 评论回复与业务扩展处理
+- 审核与申诉流程支撑
+- 消息驱动的异步处理链路
+- Elasticsearch 检索写入与查询支持
+
+## 目录结构
+
+```text
+.
+├── review-service/   # 核心评价服务
+├── review-b/         # 业务处理服务
+├── review-o/         # 运营管理服务
+├── review-job/       # 后台任务服务
+└── README.md
+```
 
 ## 快速开始
 
-### 环境配置
-1. 修改 `config.yaml` 中的配置项：
-```yaml
-# 数据库配置
-database:
-  host: "your_mysql_host"
-  port: 3306
-  username: "your_username"
-  password: "your_password"
-  dbname: "review_service"
+### 1) 环境准备
 
-# Redis配置
-redis:
-  addr: "your_redis_host:6379"
-  password: "your_redis_password"
+建议本地先准备以下依赖：
 
-# 其他服务配置...
-registry.yaml 服务注册配置
-```
+- Go 1.20+
+- Protobuf / protoc
+- MySQL
+- Redis
+- Kafka
+- Elasticsearch
+- Consul
 
-### 服务启动
+可选工具：
+
 ```bash
-# 启动评价服务
-kratos run
-
-# 或使用 Docker
-docker-compose up -d
+go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
+go install github.com/google/wire/cmd/wire@latest
 ```
+
+### 2) 配置文件
+
+请按环境修改各服务配置：
+
+- `review-service/configs/config.yaml`
+- `review-b/configs/config.yaml`
+- `review-o/configs/config.yaml`
+- `review-job/configs/config.yaml`
+
+若使用服务注册，还需检查 `review-service/configs/registry.yaml`。
+
+### 3) 安装依赖与生成代码
+
+每个服务目录都提供 `Makefile`，可独立执行：
+
+```bash
+cd review-service
+make init
+make all
+```
+
+其他服务同理（`review-b`、`review-o`、`review-job`）。
+
+### 4) 启动服务
+
+示例（以 `review-service` 为例）：
+
+```bash
+cd review-service
+go run ./cmd/review-service -conf ./configs
+```
+
+其余服务请在各自目录执行对应 `cmd/<service-name>` 启动命令。
 
 ## API 文档
 
-### 在线访问
-API Fox 文档: [3ps7nm81x9.apifox.cn](https://3ps7nm81x9.apifox.cn)
+- 在线文档（ApiFox）：<https://3ps7nm81x9.apifox.cn>
+- 本地 OpenAPI 文件：
+  - `review-service/openapi.yaml`
+  - `review-b/openapi.yaml`
+  - `review-o/openapi.yaml`
+  - `review-job/openapi.yaml`
 
-### 本地查看
-```bash
-# 查看 API 规范
-cat review-service/openapi.yaml
+## 开发建议
 
-# 或启动本地 API 文档服务
-swagger serve review-service/openapi.yaml
-```
-
-## 核心服务
-
-### 服务模块
-- review-service: 核心评价服务
-- review-b: 业务处理服务
-- review-o: 运营管理服务
-- review-job: 后台作业服务 用于读取Kafka 写入Elasticsearch
-
-## 开发说明
-
-### 依赖安装
-```bash
-go mod tidy
-```
-
-### 代码生成
-```bash
-# 生成 Protobuf 代码
-make proto
-
-# 生成 Wire 依赖注入
-在cmd/文件名/的终端中输出 wire
-```
-
-## 部署说明
-
-### 生产环境配置
-确保在 `config.yaml` 中配置：
-- 正确的数据库连接信息
-- Redis 连接配置
-- Consul 服务发现地址
-- Kafka 消息队列配置
-- Elasticsearch 搜索服务配置
-
-### 监控与日志
-- 集成 Kratos 框架的日志系统
-- 支持 Prometheus 指标收集
-- 链路追踪支持
+- 新增接口优先修改 `api/**/*.proto`，再生成代码
+- 保持服务内分层一致（`biz` / `data` / `service`）
+- 异步链路变更时，同步检查 `review-job` 消费逻辑
 
 ## 注意事项
-- 请根据实际环境修改 `config.yaml` 配置文件
-- 确保所有依赖服务（MySQL、Redis、Consul等）正常运行
-- 生产环境建议配置适当的监控和告警
+
+- 本项目依赖多个外部基础设施，建议先完成本地环境编排再联调
+- 配置文件中请勿提交真实密钥与生产凭据
+- 生产部署前请补齐监控、告警与链路追踪配置
